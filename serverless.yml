@@ -40,7 +40,7 @@ functions:
     events:
     - httpApi:
         path: /api/{id}
-        method: put
+        method: PUT
 
 resources:
   Resources:
