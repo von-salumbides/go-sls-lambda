@@ -50,7 +50,7 @@ func Handler(request events.APIGatewayV2HTTPRequest) (*event.Response, error) {
 	// Marshal to dynamodb item
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
-		zap.L().Fatal("Error marshalling item", zap.Any("item", item))
+		zap.L().Fatal("Error marshalling item", zap.Any("msg", err.Error()))
 		return &event.Response{
 			StatusCode: http.StatusInternalServerError,
 		}, err
@@ -68,7 +68,7 @@ func Handler(request events.APIGatewayV2HTTPRequest) (*event.Response, error) {
 	// Put item request
 	_, err = svc.PutItem(input)
 	if err != nil {
-		zap.L().Fatal("Got error calling put item", zap.Any("error", err))
+		zap.L().Fatal("Got error calling put item", zap.Any("error", err.Error()))
 		return &event.Response{
 			StatusCode: http.StatusInternalServerError,
 		}, err
