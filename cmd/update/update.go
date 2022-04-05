@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -35,7 +36,7 @@ func Handler(request events.APIGatewayV2HTTPRequest) (*event.Response, error) {
 		Details: itemStruct.Details,
 	}
 
-	zap.L().Info("Updating data...", zap.Any("title", info.Title), zap.Any("details", info.Details))
+	zap.L().Info("Updating data", zap.Any("title", info.Title), zap.Any("details", info.Details))
 
 	// prepare input for update
 	input := &dynamodb.UpdateItemInput{
@@ -60,7 +61,7 @@ func Handler(request events.APIGatewayV2HTTPRequest) (*event.Response, error) {
 	// update item request
 	_, err := svc.UpdateItem(input)
 	if err != nil {
-		zap.L().Fatal("Failed update", zap.Any("error", err))
+		fmt.Println(err.Error())
 		return &event.Response{
 			StatusCode: http.StatusInternalServerError,
 		}, err
