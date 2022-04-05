@@ -41,6 +41,13 @@ functions:
     - httpApi:
         path: /api/{id}
         method: PUT
+  
+  get:
+    handler: bin/get
+    events:
+    - httpApi:
+        path: /api/{id}
+        method: GET
 
 resources:
   Resources:
