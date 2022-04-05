@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+        go 'go-1.18'
+    }
     environment {
         GO111MODULE = 'on'
         GOOS = 'linux'
