@@ -6,6 +6,21 @@ provider:
   runtime: go1.x
   stage: ${opt:stage, 'dev'}
   region: us-east-2
+  memorySize: 128
+  environment:
+    DYNAMODB_TABLE: ${self:service}-table-${sls:stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
 package:
   patterns:
@@ -13,9 +28,30 @@ package:
     - ./bin/**
 
 functions:
-  hello:
-    handler: bin/hello
+  create:
+    handler: bin/create
     events:
-      - http:
-          path: /hello
-          method: any
+    - httpApi:
+        method: POST
+        path: /api
+  
+  update:
+    handler: bin/update
+    events:
+    - httpApi:
+        path: /api/{id}
+        method: put
+
+resources:
+  Resources:
+    DynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:  
+        TableName: ${self:service}-table-${sls:stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
