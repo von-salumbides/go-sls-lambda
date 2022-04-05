@@ -50,7 +50,7 @@ func Handler(request events.APIGatewayV2HTTPRequest) (*event.Response, error) {
 	// Marshal to dynamodb item
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
-		zap.L().Fatal("Error marshalling item", zap.Any("msg", err.Error()))
+		zap.L().Fatal("Error marshalling item", zap.Any("error", err.Error()))
 		return &event.Response{
 			StatusCode: http.StatusInternalServerError,
 		}, err

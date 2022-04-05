@@ -21,50 +21,50 @@ func Handler(request events.APIGatewayV2HTTPRequest) (*event.Response, error) {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
-
-	// create dynamodb client
+	//create dynamodb client
 	svc := dynamodb.New(sess)
 
-	// Getting id from path parameter
-	pathParamId := request.PathParameters["id"]
-	zap.L().Info("Derived pathParamId from path params: ", zap.Any("id", pathParamId))
-
-	result, err := svc.GetItem(&dynamodb.GetItemInput{
+	// build the query input parameter
+	params := &dynamodb.ScanInput{
 		TableName: aws.String(os.Getenv("DYNAMODB_TABLE")),
-		Key: map[string]*dynamodb.AttributeValue{
-			"id": {
-				S: aws.String(pathParamId),
-			},
-		},
-	})
+	}
+
+	//scan table
+	result, err := svc.Scan(params)
 	if err != nil {
-		zap.L().Fatal("Internal server error", zap.Any("error", err.Error()))
+		zap.L().Fatal("Query API called failed", zap.Any("error", err.Error()))
 		return &event.Response{
 			StatusCode: http.StatusInternalServerError,
 		}, err
 	}
 
-	// checking type
-	if len(result.Item) == 0 {
-		zap.L().Fatal("0 Item")
+	itemArray := []models.Item{}
+
+	for _, i := range result.Items {
+		item := models.Item{}
+		//unmarshalmap result.item to item
+		err = dynamodbattribute.UnmarshalMap(i, &item)
+		if err != nil {
+			zap.L().Fatal("Got error unmarshalling", zap.Any("error", err.Error()))
+			return &event.Response{
+				StatusCode: http.StatusInternalServerError,
+			}, err
+		}
+		itemArray = append(itemArray, item)
+	}
+	zap.L().Info("Succesfully unmarshal item", zap.Any("itemArray", itemArray))
+	itemArrayString, err := json.Marshal(itemArray)
+	if err != nil {
+		zap.L().Fatal("Got error marshalling result", zap.Any("error", err.Error()))
 		return &event.Response{
-			StatusCode: http.StatusNoContent,
+			StatusCode: http.StatusInternalServerError,
 		}, err
 	}
-
-	// created of item of type Item
-	item := models.Item{}
-	// UnmarshallMap result.item into item
-	err = dynamodbattribute.UnmarshalMap(result.Item, &item)
-	if err != nil {
-		zap.L().Panic("Failed to UnmarshalMap", zap.Any("error", err.Error()))
-	}
-	// marshal to type bytes
-	marshalledItem, err := json.Marshal(item)
 	return &event.Response{
 		StatusCode: http.StatusOK,
-		Body:       string(marshalledItem),
+		Body:       string(itemArrayString),
 	}, nil
+
 }
 
 func init() {

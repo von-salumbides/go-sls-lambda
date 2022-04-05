@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 	"os"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/von-salumbides/go-sls-lambda/pkg/event"
-	"github.com/von-salumbides/go-sls-lambda/pkg/models"
 	"github.com/von-salumbides/go-sls-lambda/utils/logger"
 	"go.uber.org/zap"
 )
@@ -20,57 +18,34 @@ func Handler(request events.APIGatewayV2HTTPRequest) (*event.Response, error) {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
-
-	// create dynamodb client
+	// create dynamodb service
 	svc := dynamodb.New(sess)
 
 	pathParamId := request.PathParameters["id"]
 
-	itemString := request.Body
-	itemStruct := models.Item{}
-	json.Unmarshal([]byte(itemString), &itemStruct)
-
-	info := models.Item{
-		Title:   itemStruct.Title,
-		Details: itemStruct.Details,
-	}
-
-	zap.L().Info("Updating data", zap.Any("title", info.Title), zap.Any("details", info.Details))
-
-	// prepare input for update
-	input := &dynamodb.UpdateItemInput{
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":t": {
-				S: aws.String(info.Title),
-			},
-			":d": {
-				S: aws.String(info.Details),
-			},
-		},
-		TableName: aws.String(os.Getenv("DYNAMODB_TABLE")),
+	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
 				S: aws.String(pathParamId),
 			},
 		},
-		ReturnValues:     aws.String("UPDATED_NEW"),
-		UpdateExpression: aws.String("set title = :t, details = :d"),
+		TableName: aws.String(os.Getenv("DYNAMODB_TABLE")),
 	}
-
-	// update item request
-	_, err := svc.UpdateItem(input)
+	//delete item request
+	_, err := svc.DeleteItem(input)
 	if err != nil {
-		zap.L().Fatal("Update Failure", zap.Any("error", err.Error()))
+		zap.L().Fatal("Got error calling Delete Item", zap.Any("error", err.Error()))
 		return &event.Response{
 			StatusCode: http.StatusInternalServerError,
 		}, err
 	}
-
+	zap.L().Info("Successfully deleted item", zap.Any("result", pathParamId))
 	return &event.Response{
 		StatusCode: http.StatusOK,
 	}, nil
 }
-func Init() {
+
+func init() {
 	logger.InitLogger()
 }
 

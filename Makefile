@@ -4,7 +4,9 @@ environment = $(DEPLOY_ENV)
 build:
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/create cmd/create/create.go
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/update cmd/update/update.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/delete cmd/delete/delete.go
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/get cmd/get/get.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/list cmd/list/list.go
 clean:
 	rm -rf ./bin ./vendor Gopkg.lock
 

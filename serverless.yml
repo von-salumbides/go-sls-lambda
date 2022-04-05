@@ -41,12 +41,26 @@ functions:
     - httpApi:
         path: /api/{id}
         method: PUT
+
+  delete:
+    handler: bin/delete
+    events:
+    - httpApi:
+        path: /api/{id}
+        method: DELETE
   
   get:
     handler: bin/get
     events:
     - httpApi:
         path: /api/{id}
+        method: GET
+  
+  list:
+    handler: bin/list
+    events:
+    - httpApi:
+        path: /api
         method: GET
 
 resources:
