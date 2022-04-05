@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -54,14 +53,14 @@ func Handler(request events.APIGatewayV2HTTPRequest) (*event.Response, error) {
 				S: aws.String(pathParamId),
 			},
 		},
-		ReturnValues:     aws.String("UPDATE_NEW"),
+		ReturnValues:     aws.String("UPDATED_NEW"),
 		UpdateExpression: aws.String("set title = :t, details = :d"),
 	}
 
 	// update item request
 	_, err := svc.UpdateItem(input)
 	if err != nil {
-		fmt.Println(err.Error())
+		zap.L().Fatal("Update Failure", zap.Any("msg", err.Error()))
 		return &event.Response{
 			StatusCode: http.StatusInternalServerError,
 		}, err
