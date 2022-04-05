@@ -60,7 +60,7 @@ func Handler(request events.APIGatewayV2HTTPRequest) (*event.Response, error) {
 	// update item request
 	_, err := svc.UpdateItem(input)
 	if err != nil {
-		zap.L().Fatal("Failed update")
+		zap.L().Fatal("Failed update", zap.Any("error", err))
 		return &event.Response{
 			StatusCode: http.StatusInternalServerError,
 		}, err
